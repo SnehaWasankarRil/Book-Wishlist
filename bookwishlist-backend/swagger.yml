@@ -1,0 +1,20 @@
+openapi: '3.0.0'
+info:
+  title: 'Contacts Manager API'
+  version: '0.1.0'
+  description: 'Contacts Manager API with Node.js and Express.js'
+servers:
+  - url: 'http://localhost:5001'
+paths:
+  /:
+    get:
+      summary: 'Check if the server is working'
+      description: 'To check if the server is working'
+      responses:
+        '200':
+          description: 'Server is working'
+          content:
+            text/plain:
+              example: 'Welcome to API'
+components: {}
+tags: []

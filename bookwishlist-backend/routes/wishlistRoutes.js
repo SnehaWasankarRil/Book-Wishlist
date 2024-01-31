@@ -3,18 +3,18 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    getContacts, 
-    createContact, 
-    getContact, 
-    updateContact, 
-    deleteContact
+    getAllBooks, 
+    addBook, 
+    findBook, 
+    updateBook,
+    removeBook
 } = require("../controllers/wishlistController");
 const validateToken = require("../middleware/validateTokenHandler");
 
 // use validateToken for each route
 router.use(validateToken);
 
-router.route("/").get(getContacts).post(createContact);
-router.route("/:id").get(getContact).put(updateContact).delete(deleteContact);
+router.route("/").get(getAllBooks).post(addBook);
+router.route("/:id").get(findBook).put(updateBook).delete(removeBook);
 
 module.exports = router;

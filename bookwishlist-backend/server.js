@@ -12,10 +12,9 @@ const swaggerUi = require("swagger-ui-express");
 connectDb();
 const app = express();
 
-
 //middlewares
 app.use(express.json());
-app.use("/api/contacts", require("./routes/contactRoutes"));
+app.use("/api/contacts", require("./routes/wishlistRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use(errorHandler)
 
@@ -32,7 +31,6 @@ app.use(
 app.get('/', (req, res) => {
     res.send("welcome to api");
 });
-
 
 const port = process.env.PORT || 5000;
 // const port = 5000;

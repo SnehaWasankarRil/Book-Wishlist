@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const contactSchema = mongoose.Schema({
+const wishlistSchema = mongoose.Schema({
     user_id:{
         type: mongoose.Schema.Types.ObjectId,
         required: true,
@@ -28,4 +28,4 @@ const contactSchema = mongoose.Schema({
 }
 );
 
-module.exports = mongoose.model("Contact", contactSchema);
+module.exports = mongoose.model("Wishlist", wishlistSchema);

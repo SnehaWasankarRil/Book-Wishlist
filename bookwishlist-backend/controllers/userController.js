@@ -2,29 +2,44 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const responseHandler = require("../middleware/responseHandler");
 
 // Register User
-const registerUser = asyncHandler(async (req, res) => {
+const registerUser = asyncHandler(async (req, res, next) => {
     const {username, email, password, preferredGenre} = req.body;
     
     // Mandatory fields check 
     if(!username || !email || !password || !preferredGenre){
-        res.status(400);
-        throw new Error("All fields are mandatory!");
+        req.response = {
+            code: 400,
+            message: "All fields are mandatory!",
+            data: {}
+        };
+        return next();
     }
 
     // Already registered user - email already taken
     const userAvailable = await User.findOne({email});
     if (userAvailable){
-        res.status(400);
-        throw new Error("Email already registered");
+        req.response = {
+            code: 409,
+            message: "Email already registered",
+            data: {}
+        };
+        return next();
     }
 
     // Already registered user - username already taken
     const userNameAvailable = await User.findOne({username});
     if (userNameAvailable){
-        res.status(400);
-        throw new Error("Username already taken");
+        req.response = {
+            code: 409,
+            message: "Username already taken",
+            data: {}
+        };
+        return next();
+        // res.status(409);
+        // throw new Error("Username already taken");
     }
 
     // // Check if the preferredGenre is one of the existing values // redununt code
@@ -36,7 +51,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Hash Password 
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("Hashed Password: ", hashedPassword);
+    // console.log("Hashed Password: ", hashedPassword);
     
     // Register user 
     const user = await User.create({
@@ -48,23 +63,44 @@ const registerUser = asyncHandler(async (req, res) => {
 
     console.log(`User Created ${User}`);
     if(user){
-        res.status(201).json({_id: user.id, email: user.email});
+        req.response = {
+            code: 201,
+            message: "User Created",
+            data: {_id: user.id, email: user.email}
+        };
+        return next();
+        // res.status(201).json({_id: user.id, email: user.email});
     }else{
-        res.status(400);
-        throw new Error("User data not valid");
+        // ????????????????????
+        req.response = {
+            code: 400,
+            message: "User data not valid",
+            data: {}
+        };
+        return next();
+        // res.status(400);
+        // throw new Error("User data not valid");
     }
-
-    // res.json({message:"Register"}); unreachable code
 });
 
 // Login User
-const loginUser = asyncHandler(async (req, res) => {
+const loginUser = asyncHandler(async (req, res, next) => {
     const {email, password} = req.body;
     
+    // // Mandatory fields check 
+    // if(!email || !password){
+    //     res.status(400);
+    //     throw new Error("All fiels are mandatory!");
+    // }
+
     // Mandatory fields check 
-    if(!email || !password){
-        res.status(400);
-        throw new Error("All fiels are mandatory!");
+    if (!email || !password) {
+        req.response = {
+            code: 400,
+            message: "All fields are mandatory!",
+            data: {}
+        };
+        return next(); // Move to the next middleware (responseHandler)
     }
 
     // check credentials - compare password and hashedPassword
@@ -79,19 +115,45 @@ const loginUser = asyncHandler(async (req, res) => {
                 },
             },//payload to generate the token
             process.env.ACCESS_TOKEN_SECRET,
-            {expiresIn: "90m"} //token expiry time
+            {expiresIn: "90h"} //token expiry time
         );
-        res.status(200).json({accessToken});
+
+        // Set the response object with the access token
+        req.response = {
+            code: 200,
+            message: "Login successful",
+            data: {
+                accessToken: accessToken,
+                // Other data you want to include in the response
+            },
+        };
+
+        // Call the response middleware
+        responseHandler(req, res);
+        // res.status(200).json({accessToken}); //old code
     }else{
-        res.status(401);
-        throw new Error("invalid creds!");
+        // res.status(401);
+        // throw new Error("invalid creds!");
+        req.response = {
+            code: 401,
+            message: "Invalid credentials",
+            data: {}
+        };
     }
-    // res.json({message:"login"});
+    
+    next(); // Move to the next middleware (responseHandler)
+
 });
 
 // Current User Info
-const currentUser = asyncHandler(async (req, res) => {
-    res.json(req.user);
+const currentUser = asyncHandler(async (req, res, next) => {
+    req.response = {
+        code: 200,
+        message: "Current user information",
+        data: req.user
+    };
+    responseHandler(req, res);
+    next();
 });
 
 module.exports = {registerUser, loginUser, currentUser};

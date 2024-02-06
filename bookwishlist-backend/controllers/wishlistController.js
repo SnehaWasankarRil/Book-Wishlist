@@ -1,17 +1,28 @@
 const asyncHandler = require ("express-async-handler");
 const Book = require("../models/wishlistModel");
 
-const getAllBooks = asyncHandler(async (req, res) => {
+// GET ALL BOOKS
+const getAllBooks = asyncHandler(async (req, res, next) => {
     const books = await Book.find({user_id: req.user.id});
-    res.status(200).json(books);
+    req.response = {
+        code: 200,
+        message: "Here is the wishlist!",
+        data: {books}
+    };
+    return next();
 });
 
-const addBook = asyncHandler(async (req, res) => {
+// ADD ONE BOOK
+const addBook = asyncHandler(async (req, res, next) => {
     console.log("The request body is:", req.body);
     const {bookTitle, bookDescription, genre, completionStatus} = req.body;
     if(!bookTitle || !bookDescription || !genre || !completionStatus){
-        res.status(400);
-        throw new Error("All fields are mandatory!");
+        req.response = {
+            code: 400,
+            message: "All fields are mandatory!",
+            data: {}
+        };
+        return next();
     }
     const book = await Book.create({
         bookTitle,
@@ -20,35 +31,59 @@ const addBook = asyncHandler(async (req, res) => {
         completionStatus,
         user_id: req.user.id
     });
-    res.status(201).json(book);
+    req.response = {
+        code: 201,
+        message: "Book added successfully!",
+        data: {book}
+    };
+    return next();
 });
 
-const findBook = asyncHandler(async (req, res) => {
+// FIND BOOK BY ID
+const findBook = asyncHandler(async (req, res, next) => {
     const book = await Book.findById(req.params.id);
     if(!book){
-        res.status(404);
-        throw new Error("Book not found in the wishlist");
+        req.response = {
+            code: 404,
+            message: "Book not found in the wishlist!",
+        };
+        return next();
     }
-    // const book = await Book.find({user_id: req.params.id});
+
     const userAuthenticationCheck = await Book.findOne({ _id: req.params.id, user_id: req.user.id });
     if(!userAuthenticationCheck){
-        res.status(403);
-        throw new Error("User is not authenticated to view this book");
+        req.response = {
+            code: 403,
+            message: "User is not authenticated to view this book",
+        };
+        return next();
     }
-    res.status(200).json(book);
+    req.response = {
+        code: 200,
+        message: "Book found!",
+        data: {book}
+    };
+    return next();
 });
 
-const updateBook = asyncHandler(async (req, res) => {
+// UPDATE BOOK BY ID
+const updateBook = asyncHandler(async (req, res, next) => {
     const book = await Book.findById(req.params.id);
     if(!book){
-        res.status(404);
-        throw new Error("Book not found");
+        req.response = {
+            code: 404,
+            message: "Book not found!",
+        };
+        return next();
     }
 
-    // Only the authorized user can update the contacts made by him
+    // Only the authorized user can update the books added by him
     if(book.user_id.toString() !== req.user.id) {
-        res.status(403);
-        throw new Error("User don't have the permission to update other user's wishlist");
+        req.response = {
+            code: 403,
+            message: "User don't have the permission to update other user's wishlist",
+        };
+        return next();
     }
 
     const updatedBook = await Book.findByIdAndUpdate(
@@ -56,24 +91,40 @@ const updateBook = asyncHandler(async (req, res) => {
         req.body,
         {new: true}
     );
-    res.status(200).json(updatedBook);
+    req.response = {
+        code: 200,
+        message: "Here are the updated book details",
+        data: {updatedBook}
+    };
+    return next();
 });
 
-const removeBook = asyncHandler(async (req, res) => {
+const removeBook = asyncHandler(async (req, res, next) => {
     const book = await Book.findById(req.params.id);
     if(!book){
-        res.status(404);
-        throw new Error("Book not found");
+        req.response = {
+            code: 404,
+            message: "Book not found!",
+        };
+        return next();
     }
 
     // Only the authorized user can delete the books added by him
     if(book.user_id.toString() !== req.user.id) {
-        res.status(403);
-        throw new Error("User don't have the permission to delete other user's wishlist");
+        req.response = {
+            code: 403,
+            message: "User don't have the permission to delete other user's wishlist",
+        };
+        return next();
     }
 
     await Book.deleteOne({_id: req.params.id});
-    res.status(200).json(contact);
+    req.response = {
+        code: 200,
+        message: "Book removed successfully!",
+        data: {book}
+    };
+    return next();
 });
 
 module.exports = {

@@ -7,163 +7,223 @@ servers:
   - url: "http://localhost:5003"
 
 tags:
-  - name: movies
-    description: Everything about Movies.
+  - name: Users
+    description: User Details
+
+
+# User
+
 paths:
-  /movies:
-    get:
+  /register:
+    post:
       tags:
-        - movies
-      summary: Get all the movies.
-      description: Get all the movies.
+        - Login and Registration
+      summary: Register a new user.
+      description: Endpoint for creating a new user account.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users'       
+      responses:
+        '201':
+          description: Successfully registered a new user.
+        '400':
+          description: Bad request. Check the request payload.
+        '409':
+          description: Conflict. User already exists with the given email or username.
+        '500':
+          description: Internal server error.
+         
+  /login:
+    post:
+      tags:
+        - Login and Registration
+      summary: Login the current user.
+      description: Endpoint for the user to login.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users'       
       responses:
         '200':
-          description: Succesfully fetched all movies.
+          description: Login successful. Token provided.
+        '400':
+          description: Bad request. Check the request payload.
+        '401':
+          description: Invalid Credentials.
+        '500':
+          description: Internal server error.
+         
+  /current:
+    get:
+      tags:
+        - Login and Registration
+      summary: Details of the current user.
+      description: Endpoint for the current user details.
+      responses:
+        '200':
+          description: request successful. Details provided.
+        '500':
+          description: Internal server error.
+
+
+# Wishlist
+
+  /:
+    get:
+      tags:
+        - Wishlist
+      summary: All books in the user's wishlist.
+      description: Endpoint for the current user's wishlist.
+      responses:
+        '200':
+          description: Request successful. Details provided.
+        '500':
+          description: Internal server error.
 
     post:
       tags:
-        - movies
-      summary: Create new movie.
-      description: Create new movie.
+        - Wishlist
+      summary: To add books in the user's wishlist.
+      description: Endpoint for adding book to the current user's wishlist.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/movies'       
+              $ref: '#/components/schemas/wishlist'       
       responses:
-        '200':
-          description: Succesfully created new movie.
+        '201':
+          description: Request successful. Details provided.
+        '400':
+          description: Bad request. Check Payload.
+        '500':
+          description: Internal server error.
+          
 
-    delete:
-      tags:
-        - movies
-      summary: Delete all movies.
-      description: Delete all movies.
-      responses:
-        '200':
-          description: Succesfully deleted all movies.
-
-  /movies/{movieId}:
+  /{id}:
     get:
       tags:
-        - movies
-      summary: Get Movie details by providing MovieId.
-      description: Get Movie details by providing MovieId.
+        - Wishlist
+      summary: To find the particular book from the current user's wishlist.
+      description: Endpoint for finding book from the current user's wishlist.
       parameters:
-        - name: movieId
+        - name: id
           in: path
-          description: ID of movie to return
+          description: ID of book to return
           required: true
           schema: 
             type: string
       responses:
         '200':
-          description: Succesfully fetched movie by its MovieId.
+          description: Request successful. Details provided.
+        '403':
+          description: User is not authenticated to view this content.
         '404':
-          description: Movie Id not found!
-
+          description: No such book found in the wishlist.
+        '500':
+          description: Internal server error.
+    
     put:
       tags:
-        - movies
-      description: Update Movie details by providing MovieId.
-      summary: Update Movie details by providing MovieId.
+        - Wishlist
+      summary: To update the particular book from the current user's wishlist.
+      description: Endpoint for updating a book from the current user's wishlist.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/movies'
+              $ref: '#/components/schemas/wishlist'       
       parameters:
-        - name: movieId
+        - name: id
           in: path
-          description: ID of movie to return
+          description: ID of book to return
           required: true
           schema: 
             type: string
       responses:
         '200':
-          description: Succesfully updated movie details.
-
+          description: Request successful. Details provided.
+        '403':
+          description: User is not authenticated to view this content.
+        '404':
+          description: No such book found in the wishlist.
+        '500':
+          description: Internal server error.
+    
     delete:
       tags:
-        - movies
-      summary: Delete Movie data by providing movieId.
-      description: Delete Movie data by providing MovieId.
-      parameters:
-        - name: movieId
-          in: path
-          description: ID of movie to return
-          required: true
-          schema: 
-            type: string
+        - Wishlist
+      summary: To delete the particular book from the current user's wishlist.
+      description: Endpoint for deleting the book from the current user's wishlist.
       responses:
         '200':
-          description: Succesfully deleted movie data by its ID.
+          description: Request successful. Details provided.
+        '403':
+          description: User is not authenticated to view this content.
+        '404':
+          description: No such book found in the wishlist.
+        '500':
+          description: Internal server error.
+    
 
 components:
   schemas:
-    movies:
+    users:
       type: object
       properties:
-        title:
+        username:
           type: string
-        gener:
+        email:
           type: string
-        duration:
-          type: number
-        artists:
-          type: array
+        password:
+          type: string
+        preferredGenre:
+          type: string
           items: 
-            type: string
-        directors:
-          type: array
-          items: 
-            type: string
-        released:
-          type: string
-        rating:
-          type: number
-          minimum: 0
-          maximum: 10
-        country:
-          type: string
+            type: enum
+
       required:
-        - title
+        - username
+        - email
+        - password
+        - preferredGenre
+
       example:
-        title: MovieName
-        genre: Genre of the movie
-        duration: 120
-        artists: [Aniket,Mukesh,Radha,Krishna]
-        directors: [Vishwajeet,jhon,Peter]
-        released: "2021"
-        rating: 8
-        country: India
+        username: abc
+        email: user@gmail.com
+        password: pass123
+        preferredGenre: ['Fiction', 'Non-Fiction', 'Comic', 'Horror']
 
 
-# paths:
-#   /:
-#     get:
-#       summary: 'Get all contacts!'
-#       description: 'Retrieve all contacts'
-#       responses:
-#         '200':
-#           description: 'Successful response'
-#     parameters:
-#       - name: showDetails
-#         in: query
-#         description: 'Specify whether to include additional details'
-#         schema:
-#           type: boolean
-#           default: false
+    wishlist:
+      type: object
+      properties:
+        user_id:
+          type: mongoose.Schema.Types.ObjectId
+        bookTitle:
+          type: string
+        bookDescription:
+          type: string
+        genre:
+          type: string
+        completionStatus:
+          type: string
+            items: 
+              type: enum
 
-#   /:
-#     get:
-#       summary: "Check if the server is working..."
-#       description: "To check if the server is working"
-#       responses:
-#         "200":
-#           description: "Server is working"
-#           content:
-#             text/plain:
-#               example: "Welcome to API"
-# components: {}
-# tags: []
+      required:
+        - user_id
+        - bookTitle
+        - bookDescription
+        - genre
+        - completionStatus
+
+      example:
+        user_id: 12343465
+        bookTitle: Sherlock Holmes
+        bookDescription: Sherlock Holmes is a fictional detective created by British author Arthur Conan Doyle.
+        genre: Fiction
+        completionStatus: ['Pending', 'Completed']
+
